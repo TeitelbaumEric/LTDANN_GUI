@@ -39,8 +39,11 @@ class Screen1(QWidget):
 
         label = QLabel('Check network health')
 
-        back_button = QPushButton('Back to Main Screen', self)
+        back_button = QPushButton('Back', self)
         back_button.clicked.connect(self.back_to_main)
+
+        back_button.setMaximumWidth(100)
+        back_button.setMaximumHeight(30)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
@@ -57,8 +60,11 @@ class Screen2(QWidget):
 
         label = QLabel('Show object localization')
 
-        back_button = QPushButton('Back to Main Screen', self)
+        back_button = QPushButton('Back', self)
         back_button.clicked.connect(self.back_to_main)
+
+        back_button.setMaximumWidth(100)
+        back_button.setMaximumHeight(30)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
