@@ -1,6 +1,5 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QGraphicsScene, QGraphicsView, QGraphicsEllipseItem, QGraphicsLineItem, QWidget, QGraphicsSimpleTextItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QWidget
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 
 class MainScreen(QMainWindow):
     def __init__(self):
@@ -41,68 +40,60 @@ class Screen1(QWidget):
 
         label = QLabel('Check network health')
 
-        back_button = QPushButton('Back', self)
+        back_button = QPushButton('Back to Main Screen', self)
         back_button.clicked.connect(self.back_to_main)
 
-        back_button.setMaximumWidth(100)
-        back_button.setMaximumHeight(30)
+        # Create a list widget to display receivers and their connection status
+        self.receiver_list = QListWidget(self)
 
-        # Create a graphics view to display the node network
-        scene = QGraphicsScene(self)
-        view = QGraphicsView(scene, self)
+        # Add items to the list widget
+        self.receiver1_item = QListWidgetItem('Receiver 1: Connected, Strength: 90%')
+        self.receiver2_item = QListWidgetItem('Receiver 2: Disconnected, Strength: N/A')
+        self.receiver3_item = QListWidgetItem('Receiver 3: Connected, Strength: 85%')
+        self.receiver4_item = QListWidgetItem('Receiver 4: Disconnected, Strength: N/A')
 
-        # Add nodes (transmitters and receiver) to the scene
-        transmitter1 = QGraphicsEllipseItem(0, 0, 50, 50)
-        transmitter2 = QGraphicsEllipseItem(0, 100, 50, 50)
-        transmitter3 = QGraphicsEllipseItem(0, 200, 50, 50)
-        transmitter4 = QGraphicsEllipseItem(0, 300, 50, 50)
-        receiver = QGraphicsEllipseItem(100, 100, 50, 50)
+        # Set the connection status for each receiver
+        self.receiver1_item.setForeground(Qt.green)  # Connected is displayed in green
+        self.receiver2_item.setForeground(Qt.red)    # Disconnected is displayed in red
+        self.receiver3_item.setForeground(Qt.green)
+        self.receiver4_item.setForeground(Qt.red)
 
-        # Set labels for nodes
-        transmitter1_label = QGraphicsSimpleTextItem("T1", transmitter1)
-        transmitter2_label = QGraphicsSimpleTextItem("T2", transmitter2)
-        transmitter3_label = QGraphicsSimpleTextItem("T3", transmitter3)
-        transmitter4_label = QGraphicsSimpleTextItem("T4", transmitter4)
-        receiver_label = QGraphicsSimpleTextItem("R", receiver)
+        # Add items to the list
+        self.receiver_list.addItem(self.receiver1_item)
+        self.receiver_list.addItem(self.receiver2_item)
+        self.receiver_list.addItem(self.receiver3_item)
+        self.receiver_list.addItem(self.receiver4_item)
 
-        scene.addItem(transmitter1)
-        scene.addItem(transmitter2)
-        scene.addItem(transmitter3)
-        scene.addItem(transmitter4)
-        scene.addItem(receiver)
-
-        # Set labels' positions
-        transmitter1_label.setPos(5, 5)
-        transmitter2_label.setPos(5, 105)
-        transmitter3_label.setPos(5, 205)
-        transmitter4_label.setPos(5, 305)
-        receiver_label.setPos(105, 105)
-
-        # Add connections between nodes with green lines
-        connection1 = QGraphicsLineItem(50, 25, 100, 125)
-        connection2 = QGraphicsLineItem(50, 125, 100, 125)
-        connection3 = QGraphicsLineItem(50, 225, 100, 125)
-        connection4 = QGraphicsLineItem(50, 325, 100, 125)
-
-        for connection in [connection1, connection2, connection3, connection4]:
-            connection.setPen(QColor("green"))
-            scene.addItem(connection)
+        # Create a "Retry Initialization" button
+        retry_button = QPushButton('Retry Initialization', self)
+        retry_button.clicked.connect(self.retry_initialization)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
+        layout.addWidget(retry_button)
+        layout.addWidget(self.receiver_list)
         layout.addWidget(back_button)
-        layout.addWidget(view)
         self.setLayout(layout)
 
     def back_to_main(self):
         self.main_window.setCentralWidget(MainScreen())
+
+    def retry_initialization(self):
+        # Change all receivers to connected and strong connection
+        self.receiver1_item.setText('Receiver 1: Connected, Strength: 100%')
+        self.receiver2_item.setText('Receiver 2: Connected, Strength: 100%')
+        self.receiver3_item.setText('Receiver 3: Connected, Strength: 100%')
+        self.receiver4_item.setText('Receiver 4: Connected, Strength: 100%')
+
+        for item in [self.receiver1_item, self.receiver2_item, self.receiver3_item, self.receiver4_item]:
+            item.setForeground(Qt.green)  # Set text color to green for connected receivers
 
 class Screen2(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
 
-        label = QLabel('Show object localization')
+        label = QLabel('SIM GOES HERE')
 
         back_button = QPushButton('Back', self)
         back_button.clicked.connect(self.back_to_main)
