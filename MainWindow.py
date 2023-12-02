@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QWidget
 from PySide6.QtCore import Qt
 from tdoa_sim.TDoA import *
+from random import randint
 
 class MainScreen(QMainWindow):
     def __init__(self):
@@ -65,9 +66,9 @@ class Screen1(QWidget):
         self.receiver_list.addItem(self.receiver3_item)
         self.receiver_list.addItem(self.receiver4_item)
 
-        # Create a "Retry Initialization" button
-        retry_button = QPushButton('Retry Initialization', self)
-        retry_button.clicked.connect(self.retry_initialization)
+        # Button to check signal strength
+        retry_button = QPushButton('Check transmitter signal strength', self)
+        retry_button.clicked.connect(self.check_signal_button)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
@@ -79,12 +80,12 @@ class Screen1(QWidget):
     def back_to_main(self):
         self.main_window.setCentralWidget(MainScreen())
 
-    def retry_initialization(self):
+    def check_signal_button(self):
         # Change all receivers to connected and strong connection
-        self.receiver1_item.setText('Receiver 1: Connected, Strength: 100%')
-        self.receiver2_item.setText('Receiver 2: Connected, Strength: 100%')
-        self.receiver3_item.setText('Receiver 3: Connected, Strength: 100%')
-        self.receiver4_item.setText('Receiver 4: Connected, Strength: 100%')
+        self.receiver1_item.setText(f'Receiver 1: Connected, Strength: {randint(0,100)}%')
+        self.receiver2_item.setText(f'Receiver 2: Connected, Strength: {randint(0,100)}%')
+        self.receiver3_item.setText(f'Receiver 3: Connected, Strength: {randint(0,100)}%')
+        self.receiver4_item.setText(f'Receiver 4: Connected, Strength: {randint(0,100)}%')
 
         for item in [self.receiver1_item, self.receiver2_item, self.receiver3_item, self.receiver4_item]:
             item.setForeground(Qt.green)  # Set text color to green for connected receivers
