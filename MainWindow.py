@@ -2,8 +2,6 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButto
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
 from tdoa_sim.TDoA import *
 from random import randint
 
@@ -70,9 +68,9 @@ class Screen1(QWidget):
         self.receiver_list.addItem(self.receiver3_item)
         self.receiver_list.addItem(self.receiver4_item)
 
-        # Create a "Retry Initialization" button
-        retry_button = QPushButton('Retry Initialization', self)
-        retry_button.clicked.connect(self.retry_initialization)
+        # Button to check signal strength
+        retry_button = QPushButton('Check transmitter signal strength', self)
+        retry_button.clicked.connect(self.check_signal_button)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
@@ -84,12 +82,12 @@ class Screen1(QWidget):
     def back_to_main(self):
         self.main_window.setCentralWidget(MainScreen())
 
-    def retry_initialization(self):
+    def check_signal_button(self):
         # Change all receivers to connected and strong connection
-        self.receiver1_item.setText('Receiver 1: Connected, Strength: 100%')
-        self.receiver2_item.setText('Receiver 2: Connected, Strength: 100%')
-        self.receiver3_item.setText('Receiver 3: Connected, Strength: 100%')
-        self.receiver4_item.setText('Receiver 4: Connected, Strength: 100%')
+        self.receiver1_item.setText(f'Receiver 1: Connected, Strength: {randint(0,100)}%')
+        self.receiver2_item.setText(f'Receiver 2: Connected, Strength: {randint(0,100)}%')
+        self.receiver3_item.setText(f'Receiver 3: Connected, Strength: {randint(0,100)}%')
+        self.receiver4_item.setText(f'Receiver 4: Connected, Strength: {randint(0,100)}%')
 
         for item in [self.receiver1_item, self.receiver2_item, self.receiver3_item, self.receiver4_item]:
             item.setForeground(Qt.green)  # Set text color to green for connected receivers
@@ -108,38 +106,22 @@ class Screen2(QWidget):
         super().__init__()
         self.main_window = main_window
 
-        label = QLabel('SIM GOES HERE')
+        label = QLabel('Visualize object localization')
 
-        back_button = QPushButton('Back', self)
+        back_button = QPushButton('Back to Main Screen', self)
         back_button.clicked.connect(self.back_to_main)
-
-        # List widget to display receiver locations and calculated transmitter location
-        self.receiver_list = QListWidget(self)
-
-        # Add items to the list widget
-        self.receiver1_item = QListWidgetItem('Receiver 1: 0, 0, 5')
-        self.receiver2_item = QListWidgetItem('Receiver 2: 0, 1000, 2')
-        self.receiver3_item = QListWidgetItem('Receiver 3: 1000, 0, 3')
-        self.receiver4_item = QListWidgetItem('Receiver 4: 1000, 1000, 1')
-        self.transmitter_calc_pos = QListWidgetItem('Calculated position: ???, ???, ???')
-        self.transmitter_actual_pos = QListWidgetItem('Actual position: 500, 400, 2')
-
-        # Add items to the list
-        self.receiver_list.addItem(self.receiver1_item)
-        self.receiver_list.addItem(self.receiver2_item)
-        self.receiver_list.addItem(self.receiver3_item)
-        self.receiver_list.addItem(self.receiver4_item)
-        self.receiver_list.addItem(self.transmitter_calc_pos)
-        self.receiver_list.addItem(self.transmitter_actual_pos)
 
         # Button to run/rerun TDOA calculation
         tdoa_button = QPushButton('Run TDoA simulation', self)
         tdoa_button.clicked.connect(self.run_tdoa_sim)
 
+        # Create the Matplotlib canvas
+        self.matplotlib_canvas = MatplotlibCanvas(self)
+
         layout = QVBoxLayout()
         layout.addWidget(label)
         layout.addWidget(tdoa_button)
-        layout.addWidget(self.receiver_list)
+        layout.addWidget(self.matplotlib_canvas)
         layout.addWidget(back_button)
         self.setLayout(layout)
 
@@ -157,13 +139,32 @@ class Screen2(QWidget):
             Node(1000, 1000, 1)  # Receiver 4
         ]      
         calculated_pos = calculate_tdoa(transmitter, receivers, num_nanos, transmitter.z)
-        # Change all receivers to connected and strong connection
-        self.transmitter_calc_pos.setText(f'Calculated position: {round(calculated_pos[0],2)},' 
-                                          f'{round(calculated_pos[1],2)},' 
-                                          f'{round(calculated_pos[2],2)}')
-        self.transmitter_actual_pos.setText(f'Actual position: {500}, {400}, {2}')
-        # for item in [self.receiver1_item, self.receiver2_item, self.receiver3_item, self.receiver4_item]:
-        #     item.setForeground(Qt.green)  # Set text color to green for connected receivers
+
+        # Call the method to update the 3D graph
+        self.display_3d_graph(receivers, calculated_pos)
+
+    def display_3d_graph(self, receivers, calculated_pos):
+        # Clear the previous plot
+        self.matplotlib_canvas.axes.cla()
+
+        # Plot receivers
+        for receiver in receivers:
+            self.matplotlib_canvas.axes.scatter(receiver.x, receiver.y, receiver.z, marker='o', label=f'Receiver')
+
+        # Plot calculated position
+        self.matplotlib_canvas.axes.scatter(calculated_pos[0], calculated_pos[1], calculated_pos[2], marker='x', label='Calculated Position', s=100)
+
+        # Set labels
+        self.matplotlib_canvas.axes.set_xlabel('X-axis')
+        self.matplotlib_canvas.axes.set_ylabel('Y-axis')
+        self.matplotlib_canvas.axes.set_zlabel('Z-axis')
+        self.matplotlib_canvas.axes.set_title('TDoA 3D Positioning')
+
+        # Add legend
+        self.matplotlib_canvas.axes.legend(loc='upper left')
+
+        # Draw the plot
+        self.matplotlib_canvas.draw()
 
 if __name__ == "__main__":
     app = QApplication([])
