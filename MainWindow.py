@@ -1,7 +1,8 @@
+import time
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QWidget, QSizePolicy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from tdoa_sim.TDoA import *
 from random import randint
 
@@ -101,6 +102,29 @@ class MatplotlibCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
+class TdoaWorker(QThread):
+    finished = Signal(tuple)
+
+    def run(self):
+        while True:
+            calculated_pos = self.calculate_tdoa()
+            time.sleep(1)
+            self.finished.emit(calculated_pos)
+
+    def calculate_tdoa(self):
+        # run tdoa sim using current node locations
+        transmitter = Node(500, 400, 2)  # Transmitter
+        num_nanos = 31.25
+        receivers = [
+            Node(0, 0, 5),  # Receiver 1
+            Node(0, 1000, 2),  # Receiver 2
+            Node(1000, 0, 3),  # Receiver 3
+            Node(1000, 1000, 1)  # Receiver 4
+        ]
+        calculated_pos = calculate_tdoa(transmitter, receivers, num_nanos, transmitter.z)
+        return receivers, calculated_pos
+
+
 class Screen2(QWidget):
     def __init__(self, main_window):
         super().__init__()
@@ -112,38 +136,35 @@ class Screen2(QWidget):
         back_button.clicked.connect(self.back_to_main)
 
         # Button to run/rerun TDOA calculation
-        tdoa_button = QPushButton('Run TDoA simulation', self)
-        tdoa_button.clicked.connect(self.run_tdoa_sim)
+        # tdoa_button = QPushButton('Run TDoA simulation', self)
+        # tdoa_button.clicked.connect(self.run_tdoa_sim)
 
         # Create the Matplotlib canvas
         self.matplotlib_canvas = MatplotlibCanvas(self)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
-        layout.addWidget(tdoa_button)
+        # layout.addWidget(tdoa_button)
         layout.addWidget(self.matplotlib_canvas)
         layout.addWidget(back_button)
         self.setLayout(layout)
 
+        # Create and start the worker thread
+        self.worker_thread = TdoaWorker()
+        self.worker_thread.finished.connect(self.display_3d_graph)
+        self.worker_thread.start()
+
     def back_to_main(self):
+        self.worker_thread.terminate()
         self.main_window.setCentralWidget(MainScreen())
 
-    def run_tdoa_sim(self):
-        # run tdoa sim using current node locations
-        transmitter = Node(500, 400, 2)  # Transmitter
-        num_nanos = 31.25
-        receivers = [
-            Node(0, 0, 5),  # Receiver 1
-            Node(0, 1000, 2),  # Receiver 2
-            Node(1000, 0, 3),  # Receiver 3
-            Node(1000, 1000, 1)  # Receiver 4
-        ]      
-        calculated_pos = calculate_tdoa(transmitter, receivers, num_nanos, transmitter.z)
+    # def run_tdoa_sim(self):
+        # restart sim if button pressed
+        # self.worker_thread.terminate()
+        # self.worker_thread.start()
 
-        # Call the method to update the 3D graph
-        self.display_3d_graph(receivers, calculated_pos)
-
-    def display_3d_graph(self, receivers, calculated_pos):
+    def display_3d_graph(self, data):
+        receivers, calculated_pos = data
         # Clear the previous plot
         self.matplotlib_canvas.axes.cla()
 
