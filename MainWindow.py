@@ -30,6 +30,8 @@ class MainScreen(QMainWindow):
         self.button1.clicked.connect(self.show_screen1)
         self.button2.clicked.connect(self.show_screen2)
 
+        self.showFullScreen()
+
     def show_screen1(self):
         self.setCentralWidget(Screen1(self))
 
@@ -126,7 +128,7 @@ class Screen2(QWidget):
         self.setLayout(layout)
 
         # Start serial communication
-        self.serial_worker = SerialWorker('ACM0', 115200)
+        self.serial_worker = SerialWorker('/dev/ttyACM0', 115200)
         self.serial_worker.new_data.connect(self.update_serial_text)
         self.serial_worker.start()
 
