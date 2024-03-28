@@ -47,6 +47,7 @@ class SerialWorker(QThread):
                         # print("For node" + info[0] + ", the prediction is " + info[5] + " meters")
 
                     self.new_data.emit(node_dict)
+                    time.sleep(0.1) # delay to prevent overwhelming the main thread
                 except IndexError:
                     pass
 
@@ -230,8 +231,3 @@ class Twod_visualization_LS(QWidget):
             self.matplotlib_canvas.axes.grid(True)
             self.matplotlib_canvas.axes.axis('equal')
             self.matplotlib_canvas.draw()
-
-    def toggle_circles(self):
-        self.show_circles = not self.show_circles
-        self.display_predictions()
-        
