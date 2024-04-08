@@ -1,6 +1,6 @@
 import sys
-from PySide6.QtWidgets import QApplication
-from main_screen import MainScreen
+from PySide6.QtWidgets import QApplication, QMainWindow
+from initialization_screen import InitializationScreen
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -8,8 +8,9 @@ if __name__ == "__main__":
     with open("styles.qss", "r") as file:
         app.setStyleSheet(file.read())
 
-    main_window = MainScreen()
-    main_window.show()
+    main_window = QMainWindow()
+    initialization_screen = InitializationScreen(main_window)
+    main_window.setCentralWidget(initialization_screen)
+    main_window.showMaximized()
 
-    sys.exit(app.exec())
-
+    app.exec()

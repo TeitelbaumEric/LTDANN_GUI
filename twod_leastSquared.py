@@ -1,3 +1,5 @@
+# twod_leastSquared.py
+
 import csv
 import time
 from matplotlib import pyplot as plt
@@ -9,10 +11,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from joblib import load
 from sklearn.linear_model import RANSACRegressor
-import serial
+from serial_manager import serial_manager
 
 EMULATOR = True
-node_dict = {"nodevals": {}, 'x': -9999, "y": -9999}
 network_size = 400
 
 # Load the trained model once
@@ -27,36 +28,13 @@ class MatplotlibCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-class SerialWorker(QThread):
-    new_data = Signal(dict)
-    def __init__(self, port_name, baud_rate):
-        self.on = True
-        super().__init__()
-        self.port_name = port_name
-        self.baud_rate = baud_rate
-
-    def run(self):
-        time.sleep(1) 
-        with serial.Serial(self.port_name, self.baud_rate) as ser:
-            while self.on:
-                try:
-                    info = ser.readline().decode().strip().split(',')
-                    node_dict["nodevals"][info[0]] = {'rssi': info[1], 'snr': info[2]}
-                    if EMULATOR:
-                        # Convert 'x' and 'y' values to floats
-                        node_dict['x'] = float(info[3])
-                        node_dict['y'] = float(info[4])
-                        # print("For node" + info[0] + ", the prediction is " + info[5] + " meters")
-
-                    self.new_data.emit(node_dict)
-                    time.sleep(0.1) # delay to prevent overwhelming the main thread
-                except IndexError:
-                    pass
-
 class Twod_visualization_LS(QWidget):
-    def __init__(self, main_window):
+    def __init__(self, main_screen, num_nodes, network_size):
         super().__init__()
-
+        self.main_screen = main_screen
+        self.num_nodes = num_nodes
+        self.network_size = network_size
+        self.node_history = {}
         self.log_data = []
         self.max_log_entries = 1000  # Maximum number of log entries to keep
 
@@ -67,10 +45,8 @@ class Twod_visualization_LS(QWidget):
         self.progress_bar.setRange(0, 0)  # Indeterminate progress
         self.progress_bar.show()
 
-        
-        self.main_window = main_window
         self.show_circles = True  # Flag to toggle circle visibility
-        self.unknown_node = [400, 400]
+    
         self.error_list = []  # List to store the errors over the trip
 
         self.show_nodes = True
@@ -98,7 +74,6 @@ class Twod_visualization_LS(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(label)
         layout.addWidget(self.matplotlib_canvas)
-        # layout.addWidget(self.toggle_circles_button)  # Add toggle visibility button
         layout.addWidget(self.error_label)  # Add the error label to the layout
         layout.addWidget(self.avg_error_label)  # Add the average error label to the layout
         layout.addWidget(back_button)  # Add back button
@@ -106,12 +81,6 @@ class Twod_visualization_LS(QWidget):
         layout.addWidget(self.toggle_lines_button)
         layout.addWidget(self.export_button)
         self.setLayout(layout)  # Set the layout for this widget
-        # Create and start the serial worker thread
-        self.serial_worker = SerialWorker('COM15', 115200)
-        self.serial_worker.new_data.connect(self.update_transmitter_data)
-        self.serial_worker.start()
-
-        self.transmitter_data = {}
     
     def export_data(self):
         file_dialog = QFileDialog(self)
@@ -128,6 +97,15 @@ class Twod_visualization_LS(QWidget):
         self.log_data.append(data)
         if len(self.log_data) > self.max_log_entries:
             self.log_data.pop(0)  # Remove the oldest entry if the log exceeds the maximum size
+        for key, value in data.items():
+            if key not in self.node_history:
+                self.node_history[key] = []
+            self.node_history[key].append({
+                'timestamp': time.time(),
+                'rssi': float(value['rssi']),
+                'snr': float(value['snr'])
+            })
+        self.main_window.node_history = self.node_history
 
     def toggle_nodes(self):
         self.show_nodes = not self.show_nodes
@@ -138,18 +116,8 @@ class Twod_visualization_LS(QWidget):
         self.display_predictions()
 
     def back_to_main(self):
-        self.serial_worker.on = False
-        time.sleep(0.2) 
-        self.serial_worker.terminate()
-        self.serial_worker.wait()  # Wait for the worker thread to finish
-        if hasattr(self.serial_worker, 'ser'):
-            self.serial_worker.ser.close()  # Close the serial connection
-        from main_screen import MainScreen
-        self.main_window.setCentralWidget(MainScreen())
-
-    def update_transmitter_data(self, data):
-        self.transmitter_data = data
-        # self.display_predictions() // Test letting timer handle redisplay
+        self.main_screen.showMaximized()
+        self.hide()
 
     def least_squares_estimation(self, distances, node_positions, weights=None):
         x_coords, y_coords = zip(*node_positions)
@@ -208,49 +176,71 @@ class Twod_visualization_LS(QWidget):
         return error
 
     def display_predictions(self):
-        # Known nodes positions
-        nodes = np.array([
-            [0, 0],
-            [network_size / 2, 0],
-            [network_size, 0],
-            [network_size, network_size / 2],
-            [network_size, network_size],
-            [network_size / 2, network_size],
-            [0, network_size],
-            [0, network_size / 2]
-        ])
+        #new        
+        if self.num_nodes == 4:
+            nodes = np.array([
+                [0, 0],
+                [self.network_size, 0],
+                [self.network_size, self.network_size],
+                [0, self.network_size],
+            ])
+        elif self.num_nodes == 8:
+            nodes = np.array([
+                [0, 0],
+                [self.network_size / 2, 0],
+                [self.network_size, 0],
+                [self.network_size, self.network_size / 2],
+                [self.network_size, self.network_size],
+                [self.network_size / 2, self.network_size],
+                [0, self.network_size],
+                [0, self.network_size / 2]
+            ])
+        else:
+            raise ValueError("Invalid number of nodes. Supported values are 4 or 8.")
+
+        # # Known nodes positions
+        # nodes = np.array([
+        #     [0, 0],
+        #     [network_size / 2, 0],
+        #     [network_size, 0],
+        #     [network_size, network_size / 2],
+        #     [network_size, network_size],
+        #     [network_size / 2, network_size],
+        #     [0, network_size],
+        #     [0, network_size / 2]
+        # ])
 
         self.matplotlib_canvas.axes.cla()
         predicted_distances = []
 
-        if len(node_dict["nodevals"]) > 7:
+        receivers_data = serial_manager.get_latest_data()
+        if receivers_data is not None and len(receivers_data) > 7:
             self.progress_bar.hide()
             rssi_values = []
             snr_values = []
             predicted_distances = []
-            for key, value in node_dict["nodevals"].items():
-                rssi = value['rssi']
-                snr = value['snr']
+            for key, value in receivers_data.items():
+                if int(key) <= self.num_nodes:
+                    rssi = value['rssi']
+                    snr = value['snr']
 
-                rssi_values.append(rssi)
-                snr_values.append(snr)
+                    rssi_values.append(rssi)
+                    snr_values.append(snr)
 
-                # Create a DataFrame with the appropriate feature names
-                model_input = pd.DataFrame({'RSSI': [rssi], 'SNR': [snr]})
+                    # Create a DataFrame with the appropriate feature names
+                    model_input = pd.DataFrame({'RSSI': [rssi], 'SNR': [snr]})
 
-                # Predict the distance using the DataFrame
-                predicted_distance = model.predict(model_input)[0]
-                # print("For node" + key + ", the prediction is " + str(predicted_distance) + " meters")
-                predicted_distances.append(predicted_distance)
+                    # Predict the distance using the DataFrame
+                    predicted_distance = model.predict(model_input)[0]
+                    predicted_distances.append(predicted_distance)
 
-                node_position = nodes[int(key)-1]
+                    node_position = nodes[int(key)-1]
 
-                self.matplotlib_canvas.axes.plot(node_position[0], node_position[1], 'bo', label=f'Node {int(key)}')
+                    self.matplotlib_canvas.axes.plot(node_position[0], node_position[1], 'bo', label=f'Node {int(key)}')
 
-        
             # Calculate weights based on RSSI and SNR values
             weights = self.calculate_weights(rssi_values, snr_values)
-
+            
             # Localization using Weighted Least Squares with RANSAC
             estimated_x, estimated_y = self.least_squares_estimation(distances=predicted_distances, node_positions=nodes, weights=weights)
 
@@ -266,39 +256,43 @@ class Twod_visualization_LS(QWidget):
 
                         self.matplotlib_canvas.axes.plot([x, estimated_x_scalar], [y, estimated_y_scalar], 'k--')
 
-            if node_dict['x'] != -9999 and node_dict['y'] != -9999:
-                x = node_dict['x']
-                y = node_dict['y']
-                self.matplotlib_canvas.axes.scatter(x, y, s=100, color='blue', label='Unknown Object')
+            # Check if 'x' and 'y' keys exist in receivers_data for any node
+            if any('x' in value and 'y' in value for value in receivers_data.values()):
+                # Find the first node that has 'x' and 'y' keys
+                known_node = next((value for value in receivers_data.values() if 'x' in value and 'y' in value), None)
+                if known_node is not None:
+                    x = float(known_node['x'])
+                    y = float(known_node['y'])
+                    self.matplotlib_canvas.axes.scatter(x, y, s=100, color='blue', label='Known Object')
 
-                # Calculate the error
-                if estimated_x is not None and estimated_y is not None:
-                    # Procure Log Statement
-                    log_entry = {
-                        'timestamp': time.time(),
-                        'nodes': [],
-                        'estimated_x': estimated_x[0],
-                        'estimated_y': estimated_y[0]
-                    }
-                    for key, value in node_dict["nodevals"].items():
-                        log_entry['nodes'].append({
-                            'node_id': key,
-                            'rssi': value['rssi'],
-                            'snr': value['snr']
-                        })
-                    self.log_data.append(log_entry)
-                    if len(self.log_data) > self.max_log_entries:
-                        self.log_data.pop(0)  # Remove the oldest entry if the log exceeds the maximum size
+                    # Calculate the error
+                    if estimated_x is not None and estimated_y is not None:
+                        # Procure Log Statement
+                        log_entry = {
+                            'timestamp': time.time(),
+                            'nodes': [],
+                            'estimated_x': estimated_x[0],
+                            'estimated_y': estimated_y[0]
+                        }
+                        for key, value in receivers_data.items():
+                            log_entry['nodes'].append({
+                                'node_id': key,
+                                'rssi': value['rssi'],
+                                'snr': value['snr']
+                            })
+                        self.log_data.append(log_entry)
+                        if len(self.log_data) > self.max_log_entries:
+                            self.log_data.pop(0)  # Remove the oldest entry if the log exceeds the maximum size
 
-                    # Calculate error if emulating.
-                    error = self.calculate_error(estimated_x[0], estimated_y[0], x, y)
-                    self.error_label.setText(f'Error: {error:.2f} meters')
-                    self.error_list.append(error)  # Add the error to the error list
-                    avg_error = np.mean(self.error_list)
-                    self.avg_error_label.setText(f'Average Error: {avg_error:.2f} meters')
-                else:
-                    self.error_label.setText('Error: N/A')
-                    self.avg_error_label.setText('Average Error: N/A')
+                        # Calculate error if emulating.
+                        error = self.calculate_error(estimated_x[0], estimated_y[0], x, y)
+                        self.error_label.setText(f'Error: {error:.2f} meters')
+                        self.error_list.append(error)  # Add the error to the error list
+                        avg_error = np.mean(self.error_list)
+                        self.avg_error_label.setText(f'Average Error: {avg_error:.2f} meters')
+                    else:
+                        self.error_label.setText('Error: N/A')
+                        self.avg_error_label.setText('Average Error: N/A')
 
             self.matplotlib_canvas.axes.set_xlabel('X-axis')
             self.matplotlib_canvas.axes.set_ylabel('Y-axis')
