@@ -13,7 +13,7 @@ class MainScreen(QMainWindow):
         self.network_size = network_size
 
         self.setWindowTitle("Localized Temporarily Deployable Autonomous Navigation Network")
-        self.setGeometry(0, 0, 800, 480)  # Set the window size to 800x480 pixels
+        # self.setGeometry(0, 0, 800, 480)  # Set the window size to 800x480 pixels
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -60,11 +60,11 @@ class MainScreen(QMainWindow):
 
 
     def show_screen1(self):
-        self.network_health_screen.showMaximized()
+        self.network_health_screen.showFullScreen()
         self.hide()
 
     def show_screentwoDimensional(self):
-        self.twod_screen.showMaximized()
+        self.twod_screen.showFullScreen()
         self.hide()
 
     def update_communicating_nodes(self):

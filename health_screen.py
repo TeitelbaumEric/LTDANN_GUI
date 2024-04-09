@@ -40,7 +40,7 @@ class NetworkHealth(QWidget):
         self.update_timer.start(1000)  # Update every 1000 milliseconds (1 second)
 
     def back_to_main(self):
-        self.main_screen.showMaximized()
+        self.main_screen.showFullScreen()
         self.hide()
 
     def update_receiver_data(self):

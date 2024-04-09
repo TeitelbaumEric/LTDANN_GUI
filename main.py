@@ -11,6 +11,6 @@ if __name__ == "__main__":
     main_window = QMainWindow()
     initialization_screen = InitializationScreen(main_window)
     main_window.setCentralWidget(initialization_screen)
-    main_window.showMaximized()
+    main_window.showFullScreen()
 
     app.exec()

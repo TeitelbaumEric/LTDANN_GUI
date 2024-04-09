@@ -15,7 +15,7 @@ class InitializationScreen(QWidget):
         super().__init__()
         self.mainwindow = mainwindow
         try:
-            self.serial_worker = SerialWorker('COM15', 115200)
+            self.serial_worker = SerialWorker('/dev/ttyACM0', 115200)
             self.serial_worker.start()
         except SerialException:
             print("SerialException Error")
@@ -123,6 +123,6 @@ class InitializationScreen(QWidget):
         num_nodes = int(self.node_combo.currentText())
         network_size = int(self.size_combo.currentText())
         main_screen = MainScreen(self.mainwindow, num_nodes, network_size)
-        main_screen.showMaximized()
+        main_screen.showFullScreen()
         self.close()
     

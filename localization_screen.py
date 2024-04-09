@@ -17,7 +17,7 @@ EMULATOR = True
 network_size = 400
 
 # Load the trained model once
-model = load('./network_config/random_forest_Model.joblib')
+model = load('./network_config/random_forest_model.joblib')
 
 class MatplotlibCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -116,7 +116,7 @@ class Twod_visualization_LS(QWidget):
         self.display_predictions()
 
     def back_to_main(self):
-        self.main_screen.showMaximized()
+        self.main_screen.showFullScreen()
         self.hide()
 
     def least_squares_estimation(self, distances, node_positions, weights=None):
