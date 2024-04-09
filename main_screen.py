@@ -14,7 +14,7 @@ class MainScreen(QMainWindow):
         self.num_nodes = num_nodes
         self.network_size = network_size
 
-        self.setWindowTitle("LTDANN")
+        self.setWindowTitle("Localized Temporarily Deployable Autonomous Navigation Network")
         self.setGeometry(0, 0, 800, 480)  # Set the window size to 800x480 pixels
 
         central_widget = QWidget(self)
