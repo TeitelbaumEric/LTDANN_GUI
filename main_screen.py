@@ -3,9 +3,9 @@ from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 from serial import SerialException
 import time
-from network_health import NetworkHealth
+from health_screen import NetworkHealth
 from serial_manager import SerialWorker
-from twod_leastSquared import Twod_visualization_LS
+from localization_screen import Twod_visualization_LS
 
 class MainScreen(QMainWindow):
     def __init__(self, mainwindow, num_nodes, network_size):

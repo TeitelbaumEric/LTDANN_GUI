@@ -17,7 +17,7 @@ EMULATOR = True
 network_size = 400
 
 # Load the trained model once
-model = load('random_forest_Model.joblib')
+model = load('./network_config/random_forest_Model.joblib')
 
 class MatplotlibCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):

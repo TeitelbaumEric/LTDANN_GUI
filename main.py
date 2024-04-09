@@ -5,7 +5,7 @@ from initialization_screen import InitializationScreen
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    with open("styles.qss", "r") as file:
+    with open("./style_sheet/styles.qss", "r") as file:
         app.setStyleSheet(file.read())
 
     main_window = QMainWindow()
