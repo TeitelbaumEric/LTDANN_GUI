@@ -14,11 +14,6 @@ class InitializationScreen(QWidget):
     def __init__(self, mainwindow):
         super().__init__()
         self.mainwindow = mainwindow
-        try:
-            self.serial_worker = SerialWorker('/dev/ttyACM0', 115200)
-            self.serial_worker.start()
-        except SerialException:
-            print("SerialException Error")
 
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
@@ -123,6 +118,12 @@ class InitializationScreen(QWidget):
     def submit_form(self):
         num_nodes = int(self.node_combo.currentText())
         network_size = int(self.size_combo.currentText())
+        try:
+            self.serial_worker = SerialWorker("COM14", 115200, num_nodes)
+            self.serial_worker.start()
+        except SerialException:
+            print("SerialException Error")
+        
         main_screen = MainScreen(self.mainwindow, num_nodes, network_size)
         main_screen.showFullScreen()
         self.close()

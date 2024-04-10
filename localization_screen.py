@@ -207,7 +207,7 @@ class Twod_visualization_LS(QWidget):
         predicted_distances = []
 
         receivers_data = serial_manager.get_latest_data()
-        if receivers_data is not None and len(receivers_data) > 7:
+        if receivers_data is not None and len(receivers_data) >= self.num_nodes:
             self.progress_bar.hide()
             rssi_values = []
             snr_values = []
@@ -229,7 +229,9 @@ class Twod_visualization_LS(QWidget):
 
                     node_position = nodes[int(key)-1]
 
-                    self.matplotlib_canvas.axes.plot(node_position[0], node_position[1], 'bo', label=f'Node {int(key)}')
+                    # Plot the node and display the node number
+                    self.matplotlib_canvas.axes.plot(node_position[0], node_position[1], 'bo')
+                    self.matplotlib_canvas.axes.text(node_position[0] + 0.05 * self.network_size, node_position[1], str(int(key)), fontsize=12, ha='left', va='center', color='black')
 
             # Calculate weights based on RSSI and SNR values
             weights = self.calculate_weights(rssi_values, snr_values)
