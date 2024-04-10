@@ -59,6 +59,7 @@ class InitializationScreen(QWidget):
         submit_button.clicked.connect(self.submit_form)
         layout.addWidget(submit_button)
         form_layout.setSpacing(10)
+        layout.setStretchFactor(self.node_map_canvas, 1)
         self.setLayout(layout)
 
         self.update_node_map()

@@ -56,7 +56,7 @@ class Twod_visualization_LS(QWidget):
         self.toggle_lines_button = QPushButton("Toggle Lines")
         self.toggle_lines_button.clicked.connect(self.toggle_lines)
         self.toggle_lines_button.setFixedHeight(40)  # Reduce the button height
-        back_button.setFixedHeight(40)  # Reduce the button height
+        
 
         # Reduce GUI update frequency
         self.update_timer = QTimer(self)
@@ -69,7 +69,8 @@ class Twod_visualization_LS(QWidget):
         self.avg_error_label = QLabel('Average Error: N/A')  # Label to display the average error over the trip
         back_button = QPushButton('Back to Main Screen', self)
         back_button.clicked.connect(self.back_to_main)
-        layout.setStretchFactor(self.matplotlib_canvas, 2)
+        back_button.setFixedHeight(40)  # Reduce the button height
+        # layout.setStretchFactor(self.matplotlib_canvas, 2)
 
         # Create the Matplotlib canvas
         self.matplotlib_canvas = MatplotlibCanvas(self, width=4, height=3, dpi=100)  # Reduce the plot size)
