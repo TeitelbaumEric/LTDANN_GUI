@@ -68,7 +68,7 @@ class Twod_visualization_LS(QWidget):
         back_button.clicked.connect(self.back_to_main)
 
         # Create the Matplotlib canvas
-        self.matplotlib_canvas = MatplotlibCanvas(self)
+        self.matplotlib_canvas = MatplotlibCanvas(self, width=4, height=3, dpi=100)  # Reduce the plot size)
 
         # Layout setup
         layout = QVBoxLayout()
@@ -198,18 +198,6 @@ class Twod_visualization_LS(QWidget):
         else:
             raise ValueError("Invalid number of nodes. Supported values are 4 or 8.")
 
-        # # Known nodes positions
-        # nodes = np.array([
-        #     [0, 0],
-        #     [network_size / 2, 0],
-        #     [network_size, 0],
-        #     [network_size, network_size / 2],
-        #     [network_size, network_size],
-        #     [network_size / 2, network_size],
-        #     [0, network_size],
-        #     [0, network_size / 2]
-        # ])
-
         self.matplotlib_canvas.axes.cla()
         predicted_distances = []
 
@@ -294,9 +282,10 @@ class Twod_visualization_LS(QWidget):
                         self.error_label.setText('Error: N/A')
                         self.avg_error_label.setText('Average Error: N/A')
 
-            self.matplotlib_canvas.axes.set_xlabel('X-axis')
-            self.matplotlib_canvas.axes.set_ylabel('Y-axis')
-            self.matplotlib_canvas.axes.set_title('Localization using Least Squares Estimation')
+            self.matplotlib_canvas.axes.set_title('Localization using Least Squares Estimation', fontsize=12)  # Reduce the font size of the plot title
+            self.matplotlib_canvas.axes.set_xlabel('X-axis', fontsize=10)  # Reduce the font size of the x-axis label
+            self.matplotlib_canvas.axes.set_ylabel('Y-axis', fontsize=10)  # Reduce the font size of the y-axis label
+            self.matplotlib_canvas.axes.tick_params(labelsize=8)  # Reduce the font size of the tick labels
             self.matplotlib_canvas.axes.legend()
             self.matplotlib_canvas.axes.grid(True)
             self.matplotlib_canvas.axes.axis('equal')

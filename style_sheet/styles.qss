@@ -1,7 +1,7 @@
 /* styles.qss */
 QWidget {
     font-family: Arial;
-    font-size: 18px;
+    font-size: 16px;
     background-color: #FFFFFF;
     color: #000000;
 }
@@ -10,10 +10,10 @@ QPushButton {
     background-color: #CE1126;
     color: #FFFFFF;
     border: none;
-    border-radius: 20px;
-    padding: 30px;
-    font-size: 24px;
-    margin-bottom: 30px;
+    border-radius: 15px;
+    padding: 20px;
+    font-size: 20px;
+    margin-bottom: 20px;
 }
 
 QPushButton:hover {
@@ -25,30 +25,30 @@ QPushButton:pressed {
 }
 
 QLabel {
-    font-size: 22px;
+    font-size: 18px;
     color: #000000;
 }
 
 QComboBox {
-    font-size: 20px;
-    padding: 10px;
-    border-radius: 10px;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 8px;
     background-color: #FFFFFF;
     color: #000000;
     border: 2px solid #B5B5B5;
 }
 
 QComboBox::drop-down {
-    width: 30px;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
+    width: 40px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 QComboBox::down-arrow {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background-color: #CE1126;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 QTableWidget {
@@ -58,20 +58,20 @@ QTableWidget {
 
 QHeaderView::section {
     background-color: #B5B5B5;
-    padding: 15px;
-    font-size: 20px;
+    padding: 10px;
+    font-size: 16px;
     font-weight: bold;
     color: #000000;
 }
 
 QProgressBar {
     background-color: #B5B5B5;
-    border-radius: 10px;
+    border-radius: 8px;
     color: #000000;
     text-align: center;
 }
 
 QProgressBar::chunk {
     background-color: #CE1126;
-    border-radius: 10px;
+    border-radius: 8px;
 }

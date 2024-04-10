@@ -24,7 +24,7 @@ class InitializationScreen(QWidget):
         layout.setAlignment(Qt.AlignCenter)
 
         title_label = QLabel("Initialization")
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
 
@@ -58,7 +58,7 @@ class InitializationScreen(QWidget):
         submit_button = QPushButton("Submit")
         submit_button.clicked.connect(self.submit_form)
         layout.addWidget(submit_button)
-
+        form_layout.setSpacing(10)
         self.setLayout(layout)
 
         self.update_node_map()
