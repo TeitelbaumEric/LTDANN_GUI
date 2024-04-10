@@ -1,11 +1,11 @@
-# twod_leastSquared.py
+# localization_screen.py
 
 import csv
 import time
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QSizePolicy, QProgressBar, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QSizePolicy, QProgressBar, QFileDialog, QHBoxLayout
 from PySide6.QtCore import QThread, Signal, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -17,7 +17,7 @@ EMULATOR = True
 network_size = 400
 
 # Load the trained model once
-model = load('./network_config/random_forest_model.joblib')
+model = load('./network_config/random_forest_Model.joblib')
 
 class MatplotlibCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -38,55 +38,56 @@ class Twod_visualization_LS(QWidget):
         self.log_data = []
         self.max_log_entries = 1000  # Maximum number of log entries to keep
 
-        self.export_button = QPushButton("Export Data")
-        self.export_button.clicked.connect(self.export_data)
-        self.export_button.setFixedHeight(40)  # Reduce the button height
-
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 0)  # Indeterminate progress
         self.progress_bar.show()
 
         self.show_circles = True  # Flag to toggle circle visibility
-    
+
         self.error_list = []  # List to store the errors over the trip
 
         self.show_nodes = True
         self.show_lines = True
 
+        # UI setup
+        label = QLabel('Visualize Distance Predictions')
+        self.error_label = QLabel('Error: N/A')  # Label to display the error
+        self.avg_error_label = QLabel('Average Error: N/A')  # Label to display the average error over the trip
+
+        # Create the Matplotlib canvas
+        self.matplotlib_canvas = MatplotlibCanvas(self)
+
+        # Create a horizontal layout for the buttons
+        button_layout = QHBoxLayout()
+
+        self.export_button = QPushButton("Export Data")
+        self.export_button.clicked.connect(self.export_data)
+        button_layout.addWidget(self.export_button)
+
         self.toggle_lines_button = QPushButton("Toggle Lines")
         self.toggle_lines_button.clicked.connect(self.toggle_lines)
-        self.toggle_lines_button.setFixedHeight(40)  # Reduce the button height
-        
+        button_layout.addWidget(self.toggle_lines_button)
+
+        back_button = QPushButton('Back to Main Screen', self)
+        back_button.clicked.connect(self.back_to_main)
+        button_layout.addWidget(back_button)
+
+        # Create a vertical layout for the main content
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(label)
+        main_layout.addWidget(self.matplotlib_canvas)
+        main_layout.addWidget(self.error_label)
+        main_layout.addWidget(self.avg_error_label)
+        main_layout.addLayout(button_layout)
+        main_layout.addWidget(self.progress_bar)
+
+        self.setLayout(main_layout)
 
         # Reduce GUI update frequency
         self.update_timer = QTimer(self)
         self.update_timer.timeout.connect(self.display_predictions)
         self.update_timer.start(1000)  # Update the GUI every 1000 milliseconds HARD WAIT
 
-        # UI setup
-        label = QLabel('Visualize Distance Predictions')
-        self.error_label = QLabel('Error: N/A')  # Label to display the error
-        self.avg_error_label = QLabel('Average Error: N/A')  # Label to display the average error over the trip
-        back_button = QPushButton('Back to Main Screen', self)
-        back_button.clicked.connect(self.back_to_main)
-        back_button.setFixedHeight(40)  # Reduce the button height
-        # layout.setStretchFactor(self.matplotlib_canvas, 2)
-
-        # Create the Matplotlib canvas
-        self.matplotlib_canvas = MatplotlibCanvas(self, width=4, height=3, dpi=100)  # Reduce the plot size)
-
-        # Layout setup
-        layout = QVBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(self.matplotlib_canvas)
-        layout.addWidget(self.error_label)  # Add the error label to the layout
-        layout.addWidget(self.avg_error_label)  # Add the average error label to the layout
-        layout.addWidget(back_button)  # Add back button
-        layout.addWidget(self.progress_bar)
-        layout.addWidget(self.toggle_lines_button)
-        layout.addWidget(self.export_button)
-        self.setLayout(layout)  # Set the layout for this widget
-    
     def export_data(self):
         file_dialog = QFileDialog(self)
         file_dialog.setAcceptMode(QFileDialog.AcceptSave)
@@ -121,7 +122,7 @@ class Twod_visualization_LS(QWidget):
         self.display_predictions()
 
     def back_to_main(self):
-        self.main_screen.showFullScreen()
+        self.main_screen.showMaximized()
         self.hide()
 
     def least_squares_estimation(self, distances, node_positions, weights=None):
@@ -181,7 +182,6 @@ class Twod_visualization_LS(QWidget):
         return error
 
     def display_predictions(self):
-        #new        
         if self.num_nodes == 4:
             nodes = np.array([
                 [0, 0],
@@ -287,10 +287,9 @@ class Twod_visualization_LS(QWidget):
                         self.error_label.setText('Error: N/A')
                         self.avg_error_label.setText('Average Error: N/A')
 
-            self.matplotlib_canvas.axes.set_title('Localization using Least Squares Estimation', fontsize=12)  # Reduce the font size of the plot title
-            self.matplotlib_canvas.axes.set_xlabel('X-axis', fontsize=10)  # Reduce the font size of the x-axis label
-            self.matplotlib_canvas.axes.set_ylabel('Y-axis', fontsize=10)  # Reduce the font size of the y-axis label
-            self.matplotlib_canvas.axes.tick_params(labelsize=8)  # Reduce the font size of the tick labels
+            self.matplotlib_canvas.axes.set_xlabel('X-axis')
+            self.matplotlib_canvas.axes.set_ylabel('Y-axis')
+            self.matplotlib_canvas.axes.set_title('Localization using Least Squares Estimation')
             self.matplotlib_canvas.axes.legend()
             self.matplotlib_canvas.axes.grid(True)
             self.matplotlib_canvas.axes.axis('equal')
